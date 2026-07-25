@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>その手法 VS 買って放置</title>
+<meta name="description" content="巷でよく言われる株の売買ルールを『ただ買って持ち続けた場合』と同じ土俵で比べる連載。">
+<style>
+:root{
+  --bg:#ffffff; --fg:#1f2328; --muted:#57606a; --line:#d0d7de;
+  --card-bg:#f6f8fa; --card-hover:#eef4ff; --accent:#d62728; --link:#2563eb;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#30363d;
+    --card-bg:#161b22; --card-hover:#12233f; --accent:#ff6b6b; --link:#6ea8fe;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:-apple-system,"Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:760px; margin:0 auto; padding:56px 20px 80px}
+header{border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:36px}
+.kicker{font-size:.82rem; letter-spacing:.08em; color:var(--muted); margin:0 0 10px}
+h1{font-size:1.9rem; line-height:1.3; margin:0 0 14px; font-weight:700}
+h1 .vs{color:var(--accent)}
+.lead{font-size:1.02rem; color:var(--muted); margin:0}
+.note{
+  margin:26px 0 40px; padding:14px 18px; background:var(--card-bg);
+  border-left:4px solid var(--accent); border-radius:4px; font-size:.95rem;
+}
+.note strong{color:var(--fg)}
+ol.toc{list-style:none; margin:0; padding:0; display:grid; gap:14px}
+ol.toc a{
+  display:block; text-decoration:none; color:inherit;
+  background:var(--card-bg); border:1px solid var(--line); border-radius:10px;
+  padding:18px 20px; transition:background .15s, border-color .15s, transform .05s;
+}
+ol.toc a:hover{background:var(--card-hover); border-color:var(--link)}
+ol.toc a:active{transform:translateY(1px)}
+.ep{font-size:.78rem; letter-spacing:.06em; color:var(--muted); margin:0 0 6px}
+.title{font-size:1.12rem; font-weight:700; margin:0 0 6px; line-height:1.4}
+.sub{font-size:.92rem; color:var(--muted); margin:0}
+footer{margin-top:48px; padding-top:22px; border-top:1px solid var(--line); font-size:.85rem; color:var(--muted)}
+footer a{color:var(--link)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kicker">連載マガジン</p>
+    <h1>その手法 <span class="vs">VS</span> 買って放置</h1>
+    <p class="lead">巷でよく言われる株の売買ルールを、「ただ買って持ち続けた場合」と<br>同じ土俵で比べていきます。</p>
+  </header>
+
+  <div class="note">
+    <strong>この連載の立ち位置。</strong>
+    「効く／効かない」を断言するのが目的ではありません。事前に条件を凍結し、指数（1306）を相手に、
+    ふつうの売買ルールが「ただ買って放置する」より多く残せたのかを一つずつ測って、そのまま記録していきます。
+  </div>
+
+  <ol class="toc">
+    <li><a href="00-intro.html">
+      <p class="ep">第0回 ── はじめに</p>
+      <p class="title">なぜ「買って放置」と比べるのか</p>
+      <p class="sub">土俵の作り方と、バックテスト自慢を鵜呑みにできない最大の理由（生存者バイアス）。</p>
+    </a></li>
+    <li><a href="01-ma-cross.html">
+      <p class="ep">第1回 ── 移動平均クロス</p>
+      <p class="title">移動平均クロスは効くのか</p>
+      <p class="sub">ゴールデンクロスで乗る。絞り込む（パーフェクトオーダー）。早く降りる（線割れ）。どれも買って放置に届いたのか。</p>
+    </a></li>
+    <li><a href="02-pullback.html">
+      <p class="ep">第2回 ── 押し目買い</p>
+      <p class="title">押し目買いは効くのか</p>
+      <p class="sub">1回ずつはちゃんと勝っている（PF 1.7）。それでも手元に残った資産は、放置に届かなかった。</p>
+    </a></li>
+  </ol>
+
+  <footer>
+    検証は事前登録（計算前に凍結）→ 計算 → 結果 の順で行っています。特定の個人・サイトを名指しする意図はなく、
+    断言されがちな「類型」を対象にしています。
+  </footer>
+</div>
+</body>
+</html>
