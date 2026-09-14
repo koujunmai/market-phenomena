@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>その理屈（メカニズム）、バックテストしてみた──はじめに（第0回）</title>
+<style>
+:root{
+  --bg:#ffffff; --fg:#1f2328; --muted:#57606a; --line:#d0d7de;
+  --qa-bg:#eef4ff; --qa-bd:#3b82f6; --qa-fg:#1e3a8a;
+  --call-bg:#f6f8fa; --call-bd:#8b98a5;
+  --accent:#d62728; --tbl-head:#f2f4f7; --tbl-zebra:#fafbfc;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#30363d;
+  --qa-bg:#12233f; --qa-bd:#3b82f6; --qa-fg:#bcd4ff;
+  --call-bg:#161b22; --call-bd:#484f58;
+  --accent:#ff6b6b; --tbl-head:#161b22; --tbl-zebra:#12161c;
+}}
+:root[data-theme=light]{--bg:#fff;--fg:#1f2328;--muted:#57606a;--line:#d0d7de;--qa-bg:#eef4ff;--qa-bd:#3b82f6;--qa-fg:#1e3a8a;--call-bg:#f6f8fa;--call-bd:#8b98a5;--tbl-head:#f2f4f7;--tbl-zebra:#fafbfc;}
+:root[data-theme=dark]{--bg:#0d1117;--fg:#e6edf3;--muted:#9198a1;--line:#30363d;--qa-bg:#12233f;--qa-bd:#3b82f6;--qa-fg:#bcd4ff;--call-bg:#161b22;--call-bd:#484f58;--tbl-head:#161b22;--tbl-zebra:#12161c;}
+*{box-sizing:border-box}
+.doc{max-width:760px;margin:0 auto;padding:32px 20px 80px;
+  font-family:-apple-system,"Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  color:var(--fg);background:var(--bg);line-height:1.85;font-size:16.5px;
+  -webkit-font-smoothing:antialiased;letter-spacing:.01em;}
+.doc h1{font-size:1.72em;line-height:1.35;margin:.2em 0 .8em;letter-spacing:0;}
+.doc h2{font-size:1.34em;margin:2.2em 0 .7em;padding-bottom:.3em;border-bottom:2px solid var(--line);}
+.doc h3{font-size:1.12em;margin:1.8em 0 .5em;color:var(--fg);}
+.doc p{margin:.9em 0}
+.doc strong{font-weight:700}
+.doc hr{border:0;border-top:1px solid var(--line);margin:2.4em 0}
+.doc a{color:#2563eb;text-decoration:none}
+.doc img{max-width:100%;height:auto;display:block;margin:1.4em auto;
+  border:1px solid var(--line);border-radius:10px;background:#fff;}
+blockquote.qa{margin:1.6em 0;padding:16px 18px 16px 20px;background:var(--qa-bg);
+  border-left:5px solid var(--qa-bd);border-radius:10px;color:var(--qa-fg);}
+blockquote.qa p{margin:.25em 0}
+blockquote.qa p:first-child{font-weight:700;letter-spacing:.02em}
+blockquote.callout{margin:1.4em 0;padding:14px 18px;background:var(--call-bg);
+  border-left:4px solid var(--call-bd);border-radius:8px;color:var(--fg);}
+blockquote.callout p{margin:.3em 0}
+.doc table{border-collapse:collapse;width:100%;margin:1.3em 0;font-size:.93em;
+  display:block;overflow-x:auto;}
+.doc th,.doc td{border:1px solid var(--line);padding:7px 11px;text-align:left;white-space:nowrap;}
+.doc thead th{background:var(--tbl-head);font-weight:700}
+.doc tbody tr:nth-child(even){background:var(--tbl-zebra)}
+.doc code{background:var(--call-bg);padding:.1em .35em;border-radius:4px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;}
+.doc ul{margin:.8em 0;padding-left:1.4em}
+.doc li{margin:.35em 0}
+</style>
+</head>
+<body>
+<article class="doc">
+<h1>その理屈（メカニズム）、バックテストしてみた──はじめに（第0回）</h1>
+<hr />
+<h2>1. この連載でやること</h2>
+<p>「1月は上がりやすい」「セルインメイ（5月に売れ）」「ハロウィン効果」──
+株の世界には、こういう<strong>年間を通じた言い伝え</strong>がたくさんあります。</p>
+<p>こうした言い伝えには、たいてい<strong>もっともらしい理屈</strong>がついています。
+「年始は資金が流入するから」「株主総会が集中するから」「夏場は参加者が減るから」……。</p>
+<p>理屈があると、つい信じたくなります。でも、理屈が<strong>もっともらしいこと</strong>と、
+その理屈が<strong>実際に株価を動かしているかどうか</strong>は、別の話です。</p>
+<p>この連載では、<strong>1つの言い伝えの理屈につき1本、実際の株価データで測ります。</strong>
+複数の条件を混ぜず、狙いを1つに絞って検証する──だから連載の名前が
+「<strong>その理屈、バックテストしてみた</strong>」です。</p>
+<p>題材には、<a href="http://www.matsui.co.jp/money-satellite/column/beginner/stock/cl-anomaly.html">松井証券マネーサテライト「代表的な年間アノマリー一覧」</a>
+に載っている、1月から12月までの言い伝えを借ります。1つずつ、月の順番どおりに検証していきます。</p>
+<blockquote class="callout">
+<p>この連載の芯：
+<strong>もっともらしい理屈がついていることと、それが実際に効くことは別問題。</strong>
+「なぜ効くと言われているか」を1つずつ、事前に条件を決めてから測ります。</p>
+</blockquote>
+<hr />
+<h2>2. 検証に使うデータと環境</h2>
+<p><strong>この連載は、姉妹連載「<a href="https://koujunmai.github.io/market-phenomena/">その手法 VS 買って放置</a>」（市場現象研究）と、同じデータ・同じ母集団を使います。</strong>
+新しくデータを作り直すのではなく、既に確定している土俵をそのまま借りる形です。</p>
+<p><strong>対象</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>指数（主な結論）</td>
+<td><strong>1306</strong>（TOPIX連動ETF）。2005年11月〜。実際に証券口座で買える商品。</td>
+</tr>
+<tr>
+<td>個別株</td>
+<td><strong>552銘柄</strong>（TOPIXの規模区分に入る583銘柄から、流動性の低い銘柄などを除いた確定リスト）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>このデータについて、最初に断っておきたいこと</strong></p>
+<ul>
+<li>これは<strong>証券会社や公的機関が作ったデータではありません</strong>。個人で集めてきた、自前のデータベースです。</li>
+<li><strong>全銘柄ではありません。</strong> 対象はほぼ大型〜中型株（552銘柄）で、小型株・新興株はほとんど含みません。</li>
+<li><strong>この母集団の選び方が、唯一の正解というわけではありません。</strong> 銘柄の選び方や期間の区切り方を変えれば、数字も変わりえます。あくまで「個人が、この条件で調べた結果」として読んでください。</li>
+<li>データの弱点（生存者バイアス＝過去に上場廃止・倒産した銘柄がデータに含まれていないこと）についても、姉妹連載の第0回で詳しく検証・開示しています。要点だけ言うと、<strong>個別株では「勝った／負けた」という相対比較のみを使い、絶対の成績（年利◯%など）は出しません</strong>。連載の主な結論は、生存者バイアスの影響を受けない指数（1306）のほうで出します。</li>
+</ul>
+<p><strong>進め方（お約束）</strong></p>
+<ul>
+<li>検証の条件は<strong>計算する前に</strong>文章として書き出し、記録に残してから計算します。結果を見たあとで条件を選び直す、ということはしません。</li>
+<li>比較の相手は、いつも<strong>「ただ買って持ち続けた場合（買って放置）」</strong>です。理屈どおりに動いたとしても、買って放置に勝てていなければ、実際の運用では意味がありません。</li>
+<li>判定は3通りで返します：<strong>効いている（GO）／このデータでは判断できない（判定不能）／効いていない、または逆（NO-GO）</strong>。「なんとなく効きそう」を「保留」でごまかさず、判断できないなら「どの大きさの効果までなら判断できないか」まで明記します。</li>
+</ul>
+<hr />
+<h2>3. 次回からの予定</h2>
+<p>松井証券の一覧にある12ヶ月ぶんの言い伝えを、機序が重なるものは1本にまとめて、
+以下の順番で1本ずつ検証していきます。</p>
+<table>
+<thead>
+<tr>
+<th>回</th>
+<th>時期</th>
+<th>言い伝え</th>
+<th>機序（なぜ効くと言われているか）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第1回</td>
+<td>1月</td>
+<td>1月効果</td>
+<td>年始の資金流入で、1月のリターンは他の月より高くなりやすい</td>
+</tr>
+<tr>
+<td>第2回</td>
+<td>2〜3月</td>
+<td>節分天井・彼岸底</td>
+<td>節分頃に天井をつけ、3月期末に向けた需給で彼岸頃に底を打つ</td>
+</tr>
+<tr>
+<td>第3回</td>
+<td>4月</td>
+<td>4月末売り</td>
+<td>4月末は利益確定売りが出やすく、株価が下がりやすい</td>
+</tr>
+<tr>
+<td>第4回</td>
+<td>5月</td>
+<td>セルインメイ</td>
+<td>5月以降は売りが優勢になり、相場が軟調になりやすい</td>
+</tr>
+<tr>
+<td>第5回</td>
+<td>6月</td>
+<td>日本株高</td>
+<td>株主総会が集中する時期で、心理的に株価が上がりやすい</td>
+</tr>
+<tr>
+<td>第6回</td>
+<td>7〜9月</td>
+<td>夏枯れ</td>
+<td>夏場は相場参加者が減り、値動き（レンジ）が縮小しやすい</td>
+</tr>
+<tr>
+<td>第7回</td>
+<td>9月</td>
+<td>下落の月</td>
+<td>過去データで、株価が下がる頻度が最も高い月とされている</td>
+</tr>
+<tr>
+<td>第8回</td>
+<td>10月</td>
+<td>10月効果・ハロウィン効果</td>
+<td>9月の調整後の買い場・10月末買い〜翌春保有が有効とされる</td>
+</tr>
+<tr>
+<td>第9回</td>
+<td>11月</td>
+<td>勝ち月</td>
+<td>中間決算発表や年末に向けた資金流入で、株価が上がりやすい</td>
+</tr>
+<tr>
+<td>第10回</td>
+<td>12月</td>
+<td>クリスマスラリー</td>
+<td>前半は節税売りで下落、年末にかけて買いが強まりやすい</td>
+</tr>
+</tbody>
+</table>
+<p>1本ごとに、①言い伝えと機序を1つに絞って条件を決めて記録する →②その条件のまま計算する →③結果を公開する、
+という順番を毎回守ります。次回、第1回「1月効果」から始めます。</p>
+<hr />
+<blockquote class="callout">
+<p>【注記】
+・本稿の母集団・データの扱いは、姉妹連載「その手法 VS 買って放置」第0回の確定事項をそのまま踏襲しています。
+・題材とした一覧は松井証券マネーサテライトのコラムを参照していますが、特定の個人・サイトの主張を否定する意図はありません。世に広く流通している類型を対象にしています。</p>
+</blockquote>
+</article>
+</body>
+</html>
